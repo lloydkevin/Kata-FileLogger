@@ -19,17 +19,17 @@ namespace FileLoggerKata
                 CreateFile(filename);
             }
 
-            WriteMessage(filename, $"{prepend} {message}\r\n", prepend);
+            WriteMessage(filename, $"{prepend} {message}\r\n");
         }
 
-        private static void WriteMessage(string filename, string message, string prepend)
+        private static void WriteMessage(string filename, string message)
         {
             File.AppendAllText(filename, message);
         }
 
         private void CreateFile(string filename)
         {
-            File.Create(filename);
+            using var stream = File.Create(filename);
         }
 
         private bool FileExists(string filename)
@@ -40,7 +40,8 @@ namespace FileLoggerKata
         private string GetFileName()
         {
             var dir = AppDomain.CurrentDomain.BaseDirectory;
-            return Path.Combine(dir, "log.txt");
+            var append = $"{DateTime.Now:yyyyMMdd}";
+            return Path.Combine(dir, $"log{append}.txt");
         }
     }
 }
