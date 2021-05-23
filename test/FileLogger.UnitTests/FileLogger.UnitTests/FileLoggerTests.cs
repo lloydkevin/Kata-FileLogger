@@ -71,6 +71,32 @@ namespace FileLogger.UnitTests
             text.Should().Be($"2021-01-01 16:10:30 simple log");
         }
 
+        [Fact]
+        public void OnSaturday_ShouldLogToWeekendFile()
+        {
+            var now = new DateTime(2021, 1, 2, 16, 10, 30);
+            var currentTime = new Mock<ICurrentTime>();
+            currentTime.Setup(x => x.Now).Returns(now);
+            var sut = new FileLoggerKata.FileLogger(currentTime.Object);
+            sut.Log("simple log");
+
+            var file = GetFile(now);
+            file.Should().EndWith("weekend.txt");
+        }
+
+        [Fact]
+        public void OnSunday_ShouldLogToWeekendFile()
+        {
+            var now = new DateTime(2021, 1, 3, 16, 10, 30);
+            var currentTime = new Mock<ICurrentTime>();
+            currentTime.Setup(x => x.Now).Returns(now);
+            var sut = new FileLoggerKata.FileLogger(currentTime.Object);
+            sut.Log("simple log");
+
+            var file = GetFile(now);
+            file.Should().EndWith("weekend.txt");
+        }
+
         private string GetFile(DateTime now)
         {
             return $"log{now:yyyyMMdd}.txt";
