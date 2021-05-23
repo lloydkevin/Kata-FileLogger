@@ -14,7 +14,7 @@ namespace FileLogger.UnitTests
         {
             var sut = new FileLoggerKata.FileLogger();
 
-            sut.Log("test");
+            sut.Log("simple log");
         }
     }
 }

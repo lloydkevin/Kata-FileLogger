@@ -12,7 +12,9 @@ namespace FileLoggerKata
         public void Log(string message)
         {
             var filename = GetFileName();
-            File.AppendAllText(filename, $"\r\n{message}");
+            var prepend = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}";
+            File.AppendAllText(filename, $"\r\n{prepend} {message}");
+
         }
 
         private string GetFileName()
