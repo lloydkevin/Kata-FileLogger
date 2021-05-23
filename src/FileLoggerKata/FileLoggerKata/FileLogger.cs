@@ -1,10 +1,6 @@
 ﻿using FileLoggerKata.Interfaces;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FileLoggerKata
 {
@@ -19,14 +15,9 @@ namespace FileLoggerKata
 
         public void Log(string message)
         {
-            var filename = GetFileName();
+            var filename = CreateLogFile();
+
             var prepend = $"{_currentTime.Now:yyyy-MM-dd HH:mm:ss}";
-
-            if (!FileExists(filename))
-            {
-                CreateFile(filename);
-            }
-
             WriteMessage(filename, $"{prepend} {message}\r\n");
         }
 
@@ -45,15 +36,23 @@ namespace FileLoggerKata
             return File.Exists(filename);
         }
 
-        private string GetFileName()
+        private string CreateLogFile()
         {
             var dir = AppDomain.CurrentDomain.BaseDirectory;
             var now = _currentTime.Now;
-            if (now.DayOfWeek == DayOfWeek.Saturday || now.DayOfWeek == DayOfWeek.Sunday)
-                return Path.Combine(dir, $"weekend.txt");
-
             var append = $"{now:yyyyMMdd}";
-            return Path.Combine(dir, $"log{append}.txt");
+            var filename = Path.Combine(dir, $"log{append}.txt");
+
+            if (now.DayOfWeek == DayOfWeek.Saturday || now.DayOfWeek == DayOfWeek.Sunday)
+            {
+                filename = Path.Combine(dir, $"weekend.txt");
+            }
+
+            if (!FileExists(filename))
+            {
+                CreateFile(filename);
+            }
+            return filename;
         }
     }
 }

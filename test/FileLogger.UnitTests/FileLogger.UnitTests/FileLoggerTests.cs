@@ -98,7 +98,7 @@ namespace FileLogger.UnitTests
         }
 
         [Fact]
-        public void OnBothWeekendDays_ShouldLogToONEWeekendFile()
+        public void OnBothWeekendDays_ShouldRenameSaturdayFileAddSundayFile()
         {
             var saturday = new DateTime(2020, 2, 1, 16, 10, 30);
             var sunday = new DateTime(2020, 2, 2, 16, 10, 30);
@@ -106,16 +106,29 @@ namespace FileLogger.UnitTests
             currentTime.Setup(x => x.Now).Returns(saturday);
 
             var sut = new FileLoggerKata.FileLogger(currentTime.Object);
-            sut.Log("saturday message");
+            sut.Log("saturday1 msg");
 
             var files = GetTextFiles();
             files.Should().HaveCount(1);
+            files.Last().Should().EndWith("weekend.txt");
 
-            currentTime.Setup(x => x.Now).Returns(sunday);
-            sut.Log("sunday msg");
+            currentTime.Setup(x => x.Now).Returns(sunday.AddDays(7));
+            sut.Log("sunday2 msg");
 
             files = GetTextFiles();
-            files.Should().HaveCount(1);
+            files.Should().HaveCount(2);
+            files[0].Should().EndWith("weekend-20200201.txt");
+            files[1].Should().EndWith("weekend.txt");
+
+            currentTime.Setup(x => x.Now).Returns(sunday.AddDays(14));
+            sut.Log("sunday3 msg");
+
+            files = GetTextFiles();
+            files.Should().HaveCount(3);
+            files[0].Should().EndWith("weekend-20200201.txt");
+            files[0].Should().EndWith("weekend-20200208.txt"); // correspond to saturday date, even though not written on saturday
+            files[1].Should().EndWith("weekend.txt");
+
         }
 
         private string GetLastTextFile()
