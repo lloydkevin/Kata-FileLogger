@@ -2,6 +2,7 @@
 using FluentAssertions;
 using Moq;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Xunit;
@@ -81,6 +82,8 @@ namespace FileLogger.UnitTests
             file.Should().EndWith("weekend.txt");
         }
 
+        
+
         [Fact]
         public void OnSunday_ShouldLogToWeekendFile()
         {
@@ -94,14 +97,41 @@ namespace FileLogger.UnitTests
             file.Should().EndWith("weekend.txt");
         }
 
+        [Fact]
+        public void OnBothWeekendDays_ShouldLogToONEWeekendFile()
+        {
+            var saturday = new DateTime(2020, 2, 1, 16, 10, 30);
+            var sunday = new DateTime(2020, 2, 2, 16, 10, 30);
+            var currentTime = new Mock<ICurrentTime>();
+            currentTime.Setup(x => x.Now).Returns(saturday);
+
+            var sut = new FileLoggerKata.FileLogger(currentTime.Object);
+            sut.Log("saturday message");
+
+            var files = GetTextFiles();
+            files.Should().HaveCount(1);
+
+            currentTime.Setup(x => x.Now).Returns(sunday);
+            sut.Log("sunday msg");
+
+            files = GetTextFiles();
+            files.Should().HaveCount(1);
+        }
+
         private string GetLastTextFile()
+        {
+            List<string> logFiles = GetTextFiles();
+            return logFiles.Last();
+        }
+
+        private List<string> GetTextFiles()
         {
             var dir = new DirectoryInfo(GetPath());
 
-            var logFile = dir.GetFiles().Where(x => x.Extension == ".txt")
-                .OrderBy(x => x.LastWriteTime).Last();
-
-            return logFile.FullName;
+            var logFiles = dir.GetFiles().Where(x => x.Extension == ".txt")
+                .OrderBy(x => x.LastWriteTime).Select(x => x.FullName)
+                .ToList();
+            return logFiles;
         }
 
         private string GetPath()
