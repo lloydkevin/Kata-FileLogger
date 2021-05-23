@@ -13,8 +13,28 @@ namespace FileLoggerKata
         {
             var filename = GetFileName();
             var prepend = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}";
-            File.AppendAllText(filename, $"\r\n{prepend} {message}");
 
+            if (!FileExists(filename))
+            {
+                CreateFile(filename);
+            }
+
+            WriteMessage(filename, $"{prepend} {message}\r\n", prepend);
+        }
+
+        private static void WriteMessage(string filename, string message, string prepend)
+        {
+            File.AppendAllText(filename, message);
+        }
+
+        private void CreateFile(string filename)
+        {
+            File.Create(filename);
+        }
+
+        private bool FileExists(string filename)
+        {
+            return File.Exists(filename);
         }
 
         private string GetFileName()
