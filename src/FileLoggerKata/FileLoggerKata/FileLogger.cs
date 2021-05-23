@@ -46,6 +46,7 @@ namespace FileLoggerKata
             if (now.DayOfWeek == DayOfWeek.Saturday || now.DayOfWeek == DayOfWeek.Sunday)
             {
                 filename = Path.Combine(dir, $"weekend.txt");
+                TryRenameWeekendFile(dir, now);
             }
 
             if (!FileExists(filename))
@@ -53,6 +54,27 @@ namespace FileLoggerKata
                 CreateFile(filename);
             }
             return filename;
+        }
+
+        private void TryRenameWeekendFile(string dir, DateTime now)
+        {
+            var fileName = Path.Combine(dir, "weekend.txt");
+            var file = new FileInfo(fileName);
+            if (!file.Exists) return;
+
+            var modifiedDate = file.LastWriteTime;
+            if (InSameWeekend(modifiedDate, now)) return;
+
+            if (modifiedDate.DayOfWeek == DayOfWeek.Sunday)
+                modifiedDate = modifiedDate.AddDays(1);
+
+            fileName = fileName.Replace("weekend.txt", $"weekend-{modifiedDate:yyyyMMDD}.txt");
+            file.MoveTo(fileName);
+        }
+
+        private bool InSameWeekend(DateTime modifiedDate, DateTime now)
+        {
+            return (now - modifiedDate).TotalDays <= 2;
         }
     }
 }
