@@ -1,4 +1,6 @@
-﻿using FluentAssertions;
+﻿using FileLoggerKata.Interfaces;
+using FluentAssertions;
+using Moq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -35,6 +37,38 @@ namespace FileLogger.UnitTests
             var text = GetLastLine(file);
 
             text.Should().Be($"{now:yyyy-MM-dd HH:mm:ss} simple log");
+        }
+
+        [Fact]
+        public void WithAMTime_ShouldLogAM()
+        {
+            var now = new DateTime(2021, 1, 1, 8, 10, 30);
+            var currentTime = new Mock<ICurrentTime>();
+            currentTime.Setup(x => x.Now).Returns(now);
+            var sut = new FileLoggerKata.FileLogger(currentTime.Object);
+            sut.Log("simple log");
+
+            var file = GetFile(now);
+            file.Should().EndWith("log20210101.txt");
+            var text = GetLastLine(file);
+
+            text.Should().Be($"2021-01-01 08:10:30 simple log");
+        }
+
+        [Fact]
+        public void WithPMTime_ShouldLog24HourPM()
+        {
+            var now = new DateTime(2021, 1, 1, 16, 10, 30);
+            var currentTime = new Mock<ICurrentTime>();
+            currentTime.Setup(x => x.Now).Returns(now);
+            var sut = new FileLoggerKata.FileLogger(currentTime.Object);
+            sut.Log("simple log");
+
+            var file = GetFile(now);
+            file.Should().EndWith("log20210101.txt");
+            var text = GetLastLine(file);
+
+            text.Should().Be($"2021-01-01 16:10:30 simple log");
         }
 
         private string GetFile(DateTime now)
