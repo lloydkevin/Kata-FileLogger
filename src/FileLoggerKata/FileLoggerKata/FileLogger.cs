@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FileLoggerKata.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,10 +10,17 @@ namespace FileLoggerKata
 {
     public class FileLogger
     {
+        private ICurrentTime _currentTime;
+
+        public FileLogger(ICurrentTime currentTime = null)
+        {
+            _currentTime = currentTime ?? new CurrentTime();
+        }
+
         public void Log(string message)
         {
             var filename = GetFileName();
-            var prepend = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}";
+            var prepend = $"{_currentTime.Now:yyyy-MM-dd HH:mm:ss}";
 
             if (!FileExists(filename))
             {
@@ -40,7 +48,7 @@ namespace FileLoggerKata
         private string GetFileName()
         {
             var dir = AppDomain.CurrentDomain.BaseDirectory;
-            var append = $"{DateTime.Now:yyyyMMdd}";
+            var append = $"{_currentTime.Now:yyyyMMdd}";
             return Path.Combine(dir, $"log{append}.txt");
         }
     }
