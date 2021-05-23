@@ -7,10 +7,12 @@ namespace FileLoggerKata
     public class FileLogger
     {
         private ICurrentTime _currentTime;
+        private ILogFileInfo _logFileInfo;
 
-        public FileLogger(ICurrentTime currentTime = null)
+        public FileLogger(ICurrentTime currentTime = null, ILogFileInfo logFileInfo = null)
         {
             _currentTime = currentTime ?? new CurrentTime();
+            _logFileInfo = logFileInfo ?? new LogFileInfo();
         }
 
         public void Log(string message)
@@ -59,17 +61,16 @@ namespace FileLoggerKata
         private void TryRenameWeekendFile(string dir, DateTime now)
         {
             var fileName = Path.Combine(dir, "weekend.txt");
-            var file = new FileInfo(fileName);
-            if (!file.Exists) return;
+            if (!File.Exists(fileName)) return;
 
-            var modifiedDate = file.LastWriteTime;
+            var modifiedDate = _logFileInfo.GetLastModifiedDate(fileName);
             if (InSameWeekend(modifiedDate, now)) return;
 
             if (modifiedDate.DayOfWeek == DayOfWeek.Sunday)
-                modifiedDate = modifiedDate.AddDays(1);
+                modifiedDate = modifiedDate.AddDays(-1);
 
-            fileName = fileName.Replace("weekend.txt", $"weekend-{modifiedDate:yyyyMMDD}.txt");
-            file.MoveTo(fileName);
+            var newfileName = fileName.Replace("weekend.txt", $"weekend-{modifiedDate:yyyyMMdd}.txt");
+            new FileInfo(fileName).MoveTo(newfileName);
         }
 
         private bool InSameWeekend(DateTime modifiedDate, DateTime now)

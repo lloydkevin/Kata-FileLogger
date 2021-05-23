@@ -13,7 +13,13 @@ namespace FileLogger.UnitTests
     {
         public FileLoggerTests()
         {
-            var files = Directory.GetFiles(GetPath(), "log*.txt");
+            DeleteFiles("log*.txt");
+            DeleteFiles("weekend*.txt");
+        }
+
+        private void DeleteFiles(string search)
+        {
+            var files = Directory.GetFiles(GetPath(), search);
             foreach (var file in files)
             {
                 try
@@ -105,7 +111,9 @@ namespace FileLogger.UnitTests
             var currentTime = new Mock<ICurrentTime>();
             currentTime.Setup(x => x.Now).Returns(saturday);
 
-            var sut = new FileLoggerKata.FileLogger(currentTime.Object);
+            var fileInfo = new Mock<ILogFileInfo>();
+            
+            var sut = new FileLoggerKata.FileLogger(currentTime.Object, fileInfo.Object);
             sut.Log("saturday1 msg");
 
             var files = GetTextFiles();
@@ -113,6 +121,8 @@ namespace FileLogger.UnitTests
             files.Last().Should().EndWith("weekend.txt");
 
             currentTime.Setup(x => x.Now).Returns(sunday.AddDays(7));
+            fileInfo.Setup(x => x.GetLastModifiedDate(It.IsAny<string>()))
+                .Returns(saturday);
             sut.Log("sunday2 msg");
 
             files = GetTextFiles();
@@ -121,13 +131,15 @@ namespace FileLogger.UnitTests
             files[1].Should().EndWith("weekend.txt");
 
             currentTime.Setup(x => x.Now).Returns(sunday.AddDays(14));
+            fileInfo.Setup(x => x.GetLastModifiedDate(It.IsAny<string>()))
+                .Returns(sunday.AddDays(7));
             sut.Log("sunday3 msg");
 
             files = GetTextFiles();
             files.Should().HaveCount(3);
             files[0].Should().EndWith("weekend-20200201.txt");
-            files[0].Should().EndWith("weekend-20200208.txt"); // correspond to saturday date, even though not written on saturday
-            files[1].Should().EndWith("weekend.txt");
+            files[1].Should().EndWith("weekend-20200208.txt"); // correspond to saturday date, even though not written on saturday
+            files[2].Should().EndWith("weekend.txt");
 
         }
 
