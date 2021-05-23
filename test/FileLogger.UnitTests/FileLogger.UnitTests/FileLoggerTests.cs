@@ -2,11 +2,8 @@
 using FluentAssertions;
 using Moq;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace FileLogger.UnitTests
@@ -33,7 +30,7 @@ namespace FileLogger.UnitTests
             var sut = new FileLoggerKata.FileLogger();
             sut.Log("simple log");
 
-            var file = GetFile(now);
+            var file = GetLastTextFile();
             var text = GetLastLine(file);
 
             text.Should().Be($"{now:yyyy-MM-dd HH:mm:ss} simple log");
@@ -48,7 +45,7 @@ namespace FileLogger.UnitTests
             var sut = new FileLoggerKata.FileLogger(currentTime.Object);
             sut.Log("simple log");
 
-            var file = GetFile(now);
+            var file = GetLastTextFile();
             file.Should().EndWith("log20210101.txt");
             var text = GetLastLine(file);
 
@@ -64,7 +61,7 @@ namespace FileLogger.UnitTests
             var sut = new FileLoggerKata.FileLogger(currentTime.Object);
             sut.Log("simple log");
 
-            var file = GetFile(now);
+            var file = GetLastTextFile();
             file.Should().EndWith("log20210101.txt");
             var text = GetLastLine(file);
 
@@ -80,7 +77,7 @@ namespace FileLogger.UnitTests
             var sut = new FileLoggerKata.FileLogger(currentTime.Object);
             sut.Log("simple log");
 
-            var file = GetFile(now);
+            var file = GetLastTextFile();
             file.Should().EndWith("weekend.txt");
         }
 
@@ -93,13 +90,18 @@ namespace FileLogger.UnitTests
             var sut = new FileLoggerKata.FileLogger(currentTime.Object);
             sut.Log("simple log");
 
-            var file = GetFile(now);
+            var file = GetLastTextFile();
             file.Should().EndWith("weekend.txt");
         }
 
-        private string GetFile(DateTime now)
+        private string GetLastTextFile()
         {
-            return $"log{now:yyyyMMdd}.txt";
+            var dir = new DirectoryInfo(GetPath());
+
+            var logFile = dir.GetFiles().Where(x => x.Extension == ".txt")
+                .OrderBy(x => x.LastWriteTime).Last();
+
+            return logFile.FullName;
         }
 
         private string GetPath()
@@ -107,16 +109,11 @@ namespace FileLogger.UnitTests
             return Path.GetFullPath(AppDomain.CurrentDomain.BaseDirectory);
         }
 
-        private string GetPath(string file)
-        {
-            return Path.Combine(GetPath(), file);
-        }
-
         private string GetLastLine(string file)
         {
             try
             {
-                var lines = File.ReadAllLines(GetPath(file));
+                var lines = File.ReadAllLines(file);
                 return lines[lines.Length - 1];
             }
             catch
@@ -124,7 +121,5 @@ namespace FileLogger.UnitTests
                 return "";
             }
         }
-
-
     }
 }

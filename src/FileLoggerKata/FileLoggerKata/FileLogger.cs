@@ -48,7 +48,11 @@ namespace FileLoggerKata
         private string GetFileName()
         {
             var dir = AppDomain.CurrentDomain.BaseDirectory;
-            var append = $"{_currentTime.Now:yyyyMMdd}";
+            var now = _currentTime.Now;
+            if (now.DayOfWeek == DayOfWeek.Saturday || now.DayOfWeek == DayOfWeek.Sunday)
+                return Path.Combine(dir, $"weekend.txt");
+
+            var append = $"{now:yyyyMMdd}";
             return Path.Combine(dir, $"log{append}.txt");
         }
     }
